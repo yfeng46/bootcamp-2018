@@ -1,0 +1,89 @@
+---
+title: "R Day 2"
+author: "Joyce Feng"
+date: "9/18/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+here::here("data","gapminder5.csv")
+
+gapminder <- read.csv(here::here("data","gapminder5.csv"))
+```
+
+## Converting factors to characters
+```{r}
+gapminder$country <- as.character(gapminder$country)
+gapminder$continent <- as.character(gapminder$continent)
+
+obs <- 1:nrow(gapminder)
+for (i in obs)
+{gapminder[i,"log_GDP"] <- log(gapminder[i,"gdpPercap"])
+gapminder[i,"log_pop"] <- log(gapminder[i,"pop"])}
+
+str(gapminder)
+```
+```{r}
+continents <- unique(gapminder$continent)
+
+for (i in continents) {
+  mean_le <- mean(gapminder$lifeExp[gapminder$continent==i],na.rm=T)
+  print(paste0(i,":",mean_le))
+}
+```
+
+```{r}
+years <- unique(gapminder$year)
+
+for (i in years){
+  print(paste0("Year: ",i))
+  for (j in continents){
+    mean_le <- mean(gapminder$lifeExp[gapminder$year == i &gapminder$continent == j],na.rm=T)
+    sd_le <- sd(gapminder$lifeExp[gapminder$year == i &gapminder$continent == j],na.rm=T)
+    print(paste0(j, ": ","Mean- ",mean_le," Standard Dev- ",sd_le))
+  }
+}
+```
+```{r}
+vars <- gapminder[,c("lifeExp","pop","gdpPercap")]
+apply(vars,2,mean,na.rm=T)
+```
+```{r}
+i <- 1987
+
+while (i<2003){
+  sd_le <- sd(gapminder$lifeExp[gapminder$year ==i],na.rm=T)
+  print(paste0(i, ": ", sd_le))
+  i <- i+5
+}
+```
+
+```{r}
+for (i in years) {
+  if (i>= 1987){
+    mean_pop <- mean(gapminder$pop[gapminder$year==i])
+    print(paste0(i, ": ", mean_pop))
+  } else{
+    print("Year is less than 1987")
+  }
+}
+```
+```{r}
+report_minmax <-
+  function(df,variable,cont) {
+  var <- df[[variable]][df$continent == cont]
+  min_le <- min(var)
+  max_le <- max(var)
+  cat("Continent: ", cont,
+    "\nMin Life Expectancy: ", min_le,
+    "\nMax Life Expectancy: ", max_le)
+  }
+  
+report_minmax(gapminder,"lifeExp","Asia")
+```
+
+
+
