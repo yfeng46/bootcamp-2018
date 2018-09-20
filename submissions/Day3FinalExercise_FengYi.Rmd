@@ -1,0 +1,55 @@
+---
+title: "Day3FinalExerciseFengYi.Rmd"
+author: "Joyce Feng"
+date: "9/19/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##load data
+```{r}
+library(ggplot2)
+library(dbplyr)
+library(lubridate)
+nys_schools <-read.csv((here::here("data/nys_schools.csv")),stringsAsFactors = F) 
+nys_acs <-read.csv((here::here("data/nys_acs.csv")),stringsAsFactors = F)
+
+```
+
+#explore data
+```{r}
+str(nys_schools)
+summary(nys_schools)
+str(nys_acs)
+summary(nys_acs)
+```
+```{r}
+nys_schools[nys_schools == -99] <- NA
+nys_acs$countygroup <- NA #create countygroup as a category variable
+low_bench = quantile(nys_acs$county_per_poverty,0.33)
+high_bench = quantile(nys_acs$county_per_poverty,0.66)
+for (i in (1:nrow(nys_acs))){
+  if (nys_acs[i, "county_per_poverty"] < low_bench) {
+    nys_acs[i,"countygroup"] = "low"
+  } else {if (nys_acs[i, "county_per_poverty"] >= low_bench && nys_acs[i,"county_per_poverty"] <= high_bench){
+    nys_acs[i, "countygroup"] = "medium"
+  } else {
+    nys_acs[i, "countygroup"] = "high"
+  }}
+}
+summary(nys_acs)
+```
+
+#standardize math and English Language Art scores
+```{r}
+nys_schools %>%
+  group_by(year) %>% 
+  summarise(mean_math_score = mean(mean_math_score)) %>% 
+  summarise(mean_ela_score = mean(mean_ela_score)) %>% 
+  mutate(mathzscore = scale(mean_math_score,center = T, scale = T)) %>% 
+  mutate(elazscore = scale(mean_ela_score, center=T, scale=T))
+```
+

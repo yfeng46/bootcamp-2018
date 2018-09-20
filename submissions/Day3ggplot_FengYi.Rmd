@@ -1,0 +1,79 @@
+---
+title: "Day3 ggplot"
+author: "Joyce Feng"
+date: "9/19/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##load data
+```{r}
+library(ggplot2)
+source(here::here("data/day3_objects.R"))
+```
+```{r}
+ggplot(data=gapminder07) +
+  geom_point(mapping = aes(x=gdpPercap, y = lifeExp))
+```
+
+```{r}
+ggplot(data=gapminder07) +
+  geom_point(aes(x = log(pop),y = log(gdpPercap))) +
+  labs(title="Relationship between logPop and GDP per capita",x = "log of Pop", y="GDP per capita")
+```
+
+```{r}
+long_gen %>%
+  filter(source == "large_hydro" | source == "small_hydro") %>%
+  group_by(datetime) %>%
+  summarize(output = sum(output)) %>% 
+  ggplot() +
+  geom_col(aes(x=datetime,y=output)) +
+  labs(title = "Hydroelectric", x="datetime", y="output")
+```
+
+```{r}
+long_merged_energy %>% 
+  group_by(source) %>% 
+  summarize(output = sum(output)) %>% 
+  ggplot()+
+  geom_col(aes(x=source,y=output),fill = "darkred") +
+    geom_hline(aes(yintercept=mean(output))) +
+    labs(title="Output by sources", x="Source", y="Output")
+```
+```{r}
+long_merged_energy %>% 
+  filter(source == "wind" | source == "solar" | source == "geothermal") %>% 
+  ggplot() +
+  geom_line(aes(x=datetime, y=output, group = source, col = source)) +
+  labs(title = "Output of wind, solar and geothermal", x = "Hour", y = "Output")
+```
+
+```{r}
+library(lubridate)
+library(dplyr)
+long_merged_energy %>% 
+  group_by(source) %>% 
+  mutate(time = lubridate::hour(datetime)) %>% 
+  group_by(time, source) %>% 
+  summarize(mean_output = mean(output)) %>% 
+  ggplot() +
+  geom_col(aes(x=time, y= mean_output, group = source, fill = source)) +
+  scale_fill_brewer(palette = "Set3",name="Power source")
+  labs(title = "Average hourly output by source", x="Hour", y="Average output")
+```
+```{r}
+long_gen %>% 
+  rename(type = source) %>% 
+  merge(regroup, by = "type") %>% 
+  ggplot() +
+  geom_line(aes(x=datetime, y= output, col = group)) +
+  facet_wrap(~type, scales = "free") +
+  labs(title="Generation patterns for each source", x="Hour",y = "Output(MW)") +
+  theme(legend.position = "bottom") +
+  scale_color_brewer(palette = "Set1")
+```
+
